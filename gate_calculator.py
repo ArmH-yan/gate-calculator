@@ -8,37 +8,43 @@ from fpdf import FPDF
 st.set_page_config(page_title="Gate Calculator", layout="wide")
 
 DEFAULT_ITEMS = [
-    {"Item": "Korob",          "Size": 3.61,  "Quantity": 1,  "Gin": 12500, "use_size": True},
-    {"Item": "Val",            "Size": 3.51,  "Quantity": 1,  "Gin": 3000,  "use_size": True},
-    {"Item": "Palet",          "Size": 3.48,  "Quantity": 36, "Gin": 1385,  "use_size": True},
-    {"Item": "Takacu",         "Size": 3.48,  "Quantity": 1,  "Gin": 3500,  "use_size": True},
-    {"Item": "Takacui Rezin",  "Size": 3.48,  "Quantity": 1,  "Gin": 400,   "use_size": True},
-    {"Item": "Reil (votq)",    "Size": 2.6,   "Quantity": 2,  "Gin": 5400,  "use_size": True},
-    {"Item": "Chotq",          "Size": 20.8,  "Quantity": 1,  "Gin": 50,    "use_size": True},
-    {"Item": "Motor",          "Size": 140,   "Quantity": 1,  "Gin": 41000, "use_size": False},
-    {"Item": "Receiver/Mayr",  "Size": None,  "Quantity": 1,  "Gin": 7000,  "use_size": False},
-    {"Item": "roller (pachevnik)", "Size": None, "Quantity": 1, "Gin": 300,  "use_size": False},
-    {"Item": "Propka",          "Size": None,  "Quantity": 36, "Gin": 40,    "use_size": False},
-    {"Item": "plate",          "Size": None,  "Quantity": 1,  "Gin": 450,   "use_size": False},
-    {"Item": "Rolik",          "Size": None,  "Quantity": 1,  "Gin": 2500,  "use_size": False},
-    {"Item": "Adaptor1",       "Size": None,  "Quantity": 1,  "Gin": 1500,  "use_size": False},
-    {"Item": "Adaptor2",       "Size": None,  "Quantity": 0,  "Gin": 3500,  "use_size": False},
-    {"Item": "Ring Plastic",   "Size": None,  "Quantity": 7,  "Gin": 250,   "use_size": False},
-    {"Item": "Bakavinka",      "Size": None,  "Quantity": 1,  "Gin": 10000, "use_size": False},
-    {"Item": "Ruchka",         "Size": None,  "Quantity": 1,  "Gin": 2300,  "use_size": False},
-    {"Item": "Zamok Plastic",  "Size": None,  "Quantity": 0,  "Gin": 2600,  "use_size": False},
-    {"Item": "Kaxich Erkat",   "Size": None,  "Quantity": 14, "Gin": 230,   "use_size": False},
-    {"Item": "Avelord Pult",   "Size": None,  "Quantity": 0,  "Gin": 2500,  "use_size": False},
+    {"Item": "Palet (Pallet)",       "Size": 3.48,  "Quantity": 36, "Gin": 1385,  "use_size": True},
+    {"Item": "Korob 30",             "Size": None,  "Quantity": 0,  "Gin": 13900, "use_size": True},
+    {"Item": "Korob 35",             "Size": None,  "Quantity": 0,  "Gin": 17800, "use_size": True},
+    {"Item": "Korob 40",             "Size": None,  "Quantity": 0,  "Gin": 25000, "use_size": True},
+    {"Item": "Val 70",               "Size": None,  "Quantity": 1,  "Gin": 3000,  "use_size": True},
+    {"Item": "Motor 50N",            "Size": None,  "Quantity": 0,  "Gin": 26000, "use_size": False},
+    {"Item": "Motor 80N",            "Size": None,  "Quantity": 0,  "Gin": 33000, "use_size": False},
+    {"Item": "Motor 100N",           "Size": None,  "Quantity": 0,  "Gin": 35000, "use_size": False},
+    {"Item": "Motor 120N",           "Size": None,  "Quantity": 0,  "Gin": 38000, "use_size": False},
+    {"Item": "Motor 140N",           "Size": None,  "Quantity": 0,  "Gin": 41000, "use_size": False},
+    {"Item": "Motor 180N",           "Size": None,  "Quantity": 0,  "Gin": 43000, "use_size": False},
+    {"Item": "Bakavinka 30",         "Size": None,  "Quantity": 0,  "Gin": 10000, "use_size": False},
+    {"Item": "Bakavinka 35",         "Size": None,  "Quantity": 0,  "Gin": 14000, "use_size": False},
+    {"Item": "Bakavinka 40",         "Size": None,  "Quantity": 0,  "Gin": 16000, "use_size": False},
+    {"Item": "Reil (votq)",          "Size": 2.6,   "Quantity": 2,  "Gin": 5400,  "use_size": True},
+    {"Item": "Takacu",               "Size": 3.48,  "Quantity": 1,  "Gin": 3500,  "use_size": True},
+    {"Item": "Takacui Rezin",        "Size": 3.48,  "Quantity": 1,  "Gin": 400,   "use_size": True},
+    {"Item": "Chotq",                "Size": 20.8,  "Quantity": 1,  "Gin": 50,    "use_size": True},
+    {"Item": "Adaptor 1 (Vali Glux)","Size": None,  "Quantity": 0,  "Gin": 1500,  "use_size": False},
+    {"Item": "Adaptor 2 (Vali Glux)","Size": None,  "Quantity": 0,  "Gin": 3500,  "use_size": False},
+    {"Item": "Adaptor 3 (Vali Glux)","Size": None,  "Quantity": 0,  "Gin": 5000,  "use_size": False},
+    {"Item": "Mayr",                 "Size": None,  "Quantity": 1,  "Gin": 9000,  "use_size": False},
+    {"Item": "Vali Kalco",           "Size": None,  "Quantity": 7,  "Gin": 250,   "use_size": False},
+    {"Item": "Kaxich",               "Size": None,  "Quantity": 14, "Gin": 230,   "use_size": False},
+    {"Item": "Tormoz",               "Size": None,  "Quantity": 1,  "Gin": 2600,  "use_size": False},
+    {"Item": "Zamok Plastic",        "Size": None,  "Quantity": 0,  "Gin": 2600,  "use_size": False},
+    {"Item": "Ruchka",               "Size": None,  "Quantity": 1,  "Gin": 2500,  "use_size": False},
+    {"Item": "Kardan",               "Size": None,  "Quantity": 1,  "Gin": 2500,  "use_size": False},
+    {"Item": "Rolik",                "Size": None,  "Quantity": 1,  "Gin": 2500,  "use_size": False},
+    {"Item": "Plastmas",             "Size": None,  "Quantity": 36, "Gin": 40,    "use_size": False},
+    {"Item": "roller (pachevnik)",   "Size": None,  "Quantity": 1,  "Gin": 300,   "use_size": False},
+    {"Item": "plate",                "Size": None,  "Quantity": 1,  "Gin": 450,   "use_size": False},
+    {"Item": "Ring Plastic",         "Size": None,  "Quantity": 7,  "Gin": 250,   "use_size": False},
+    {"Item": "Avelord Pult",         "Size": None,  "Quantity": 0,  "Gin": 2500,  "use_size": False},
 ]
 
-KNOWN_DISCREPANCIES = {"Val": 10830}
-
-COLOUR_OPTIONS = [
-    "andracid", "silver", "white"
-]
-MOTOR_OPTIONS = [
-    "aj", "nice", "cames", "key", "FAAC", "BFT", "Somfy", "Chamberlain",
-]
+KNOWN_DISCREPANCIES = {}
 
 
 def compute_totals(df: pd.DataFrame) -> pd.DataFrame:
@@ -277,7 +283,7 @@ st.divider()
 left_sp, center, right_sp = st.columns([2, 3, 2])
 with center:
     st.metric(
-        label="Final quote / Verjinag gin (\u054e\u0565\u0580\u057b\u056b\u0576\u0561\u056f\u0561\u0576 \u0563\u056b\u0576)",
+        label="Final quote / Verjnakan gin (\u054e\u0565\u0580\u057b\u056b\u0576\u0561\u056f\u0561\u0576 \u0563\u056b\u0576)",
         value=f"{final_quote:,.0f}",
         help="Rounded UP to nearest 1000. e.g. 315,057 -> 316,000",
     )
@@ -325,13 +331,13 @@ with sum_side:
     st.subheader("Summary / Hashvark (\u0540\u0561\u0577\u057e\u0561\u057c\u056f)")
     r1a, r1b, r1c, r1d = st.columns(4)
     r1a.metric("Area / Taratsq (\u054f\u0561\u0580\u0561\u0581\u0584) [m\u00b2]", f"{m2:.3f}")
-    r1b.metric("Subtotal / Yndhanur (\u0544\u0561\u0576\u0578\u0582\u0580)", f"{subtotal:,.1f}")
+    r1b.metric("Subtotal / Yndhanur ", f"{subtotal:,.1f}")
     r1c.metric("G/m\u00b2 / Gin (\u0533\u056b\u0576)", f"{gm2:,.1f}")
-    r1d.metric("Discount / Zeghj (\u0536\u0565\u0572\u057b\u057b)", f"{discount_amount:,.1f}")
+    r1d.metric("Discount / Zeghj (\u0536\u0565\u0572\u057b)", f"{discount_amount:,.1f}")
 
     r2a, r2b = st.columns(2)
-    r2a.metric("After discount (\u0536\u0565\u0572\u057b\u057b\u056b\u0581 \u0570\u0565\u057f\u0578)", f"{after_discount:,.1f}")
-    r2b.metric("Final quote (\u054e\u0565\u0580\u057b\u056b\u0576\u0561\u056f\u0561\u0576 \u0563\u056b\u0576)", f"{final_quote:,.0f}")
+    r2a.metric("After discount (\u0536\u0565\u0572\u057b\u056b\u0581 \u0570\u0565\u057f\u0578)", f"{after_discount:,.1f}")
+    r2b.metric("Final quote (\u054e\u0565\u0580\u057b\u0576\u0561\u056f\u0561\u0576 \u0563\u056b\u0576)", f"{final_quote:,.0f}")
 
 with reset_side:
     st.write("")
