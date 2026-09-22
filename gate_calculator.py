@@ -33,7 +33,7 @@ DEFAULT_ITEMS = [
     {"Item": "Adaptor 2 (Vali Glux)", "Type": "Accessory",   "Size": None,  "Quantity": 0,  "Gin": 3500,  "use_size": False},
     {"Item": "Adaptor 3 (Vali Glux)", "Type": "Accessory",   "Size": None,  "Quantity": 0,  "Gin": 5000,  "use_size": False},
     {"Item": "Mayr",                  "Type": "Accessory",   "Size": None,  "Quantity": 0,  "Gin": 9000,  "use_size": False},
-    {"Item": "Vali Kalco",            "Type": "Accessory",   "Size": None,  "Quantity": 7,  "Gin": 250,   "use_size": False},
+    {"Item": "Vali Kalco",            "Type": "Accessory",   "Size": None,  "Quantity": 0,  "Gin": 250,   "use_size": False},
     {"Item": "Kaxich",                "Type": "Accessory",   "Size": None,  "Quantity": 0,  "Gin": 230,   "use_size": False},
     {"Item": "Tormoz",                "Type": "Accessory",   "Size": None,  "Quantity": 1,  "Gin": 2600,  "use_size": False},
     {"Item": "Zamok Plastic",         "Type": "Accessory",   "Size": None,  "Quantity": 0,  "Gin": 2600,  "use_size": False},
@@ -44,7 +44,7 @@ DEFAULT_ITEMS = [
     {"Item": "Plastmas",              "Type": "Parts",       "Size": None,  "Quantity": 0,  "Gin": 40,    "use_size": False},
     {"Item": "roller (pachevnik)",    "Type": "Parts",       "Size": None,  "Quantity": 0,  "Gin": 300,   "use_size": False},
     {"Item": "plate",                 "Type": "Parts",       "Size": None,  "Quantity": 0,  "Gin": 450,   "use_size": False},
-    {"Item": "Ring Plastic",          "Type": "Parts",       "Size": None,  "Quantity": 0,  "Gin": 250,   "use_size": False},
+
     {"Item": "Avelord Pult",          "Type": "Parts",       "Size": None,  "Quantity": 0,  "Gin": 2500,  "use_size": False},
 ]
 
@@ -196,8 +196,7 @@ def recalculate_from_inputs():
     palet_qty = math.ceil(((height_cm - chaps) / paleti_laynq) / 100) + 2 if paleti_laynq else 0
     _set("Palet (Pallet)", qty=palet_qty)
     _set("Plastmas", qty=palet_qty)
-    # Ring Plastic = round((Height * 10) / 5)
-    _set("Ring Plastic", qty=round((height * 10) / 5))
+    _set("Vali Kalco", qty=math.ceil((height * 10) / 5))
     # Kaxich = round(Height * Length)
     _set("Kaxich", qty=round(height * length))
 
@@ -377,10 +376,10 @@ def generate_gate_info_pdf(
 
     active = items_df[items_df["Quantity"] != 0].copy()
 
-    col_widths = [12, 45, 18, 16]
-    headers = ["Type", "Item", "Size", "Qty"]
-    row_h = 4.5
-    font_size = 7.5
+    col_widths = [50, 22, 20]
+    headers = ["Item", "Size", "Qty"]
+    row_h = 5.5
+    font_size = 9
 
     pdf.set_font("Helvetica", "B", font_size)
     pdf.set_x(table_x)
@@ -392,7 +391,6 @@ def generate_gate_info_pdf(
     for _, row in active.iterrows():
         size_str = f"{row['Size']:.2f}" if pd.notna(row["Size"]) else "-"
         vals = [
-            str(row.get("Type", "")),
             str(row["Item"]),
             size_str,
             str(int(row["Quantity"])),
@@ -412,6 +410,10 @@ def generate_gate_info_pdf(
 
 if "gate_items" not in st.session_state:
     st.session_state.gate_items = default_df()
+    recalculate_from_inputs()
+    # Apply default motor and adaptor selections
+    select_motor("Motor 50N")
+    select_adaptor("Adaptor 1 (Vali Glux)")
 
 # ---------------------------------------------------------------------------
 # TOP INPUTS — Height, Length, Chaps, Paleti Laynq, Motor, Adaptor, Discount
@@ -626,6 +628,7 @@ with reset_side:
     st.write("")
     if st.button("Reset to defaults", use_container_width=True):
         st.session_state.gate_items = default_df()
+        recalculate_from_inputs()
         st.rerun()
 
     # Get motor name for PDF
@@ -656,7 +659,7 @@ with reset_side:
     st.download_button(
         label="Download PDF",
         data=pdf_bytes,
-        file_name=f"pdf_all_{today_str}.pdf",
+        file_name=f"gnarajark{today_str}.pdf",
         mime="application/pdf",
         use_container_width=True,
     )
