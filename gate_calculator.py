@@ -16,7 +16,7 @@ DEFAULT_ITEMS = [
     {"Item": "Reil (votq)",           "Type": "Profile",     "Size": None,  "Quantity": 0,  "Gin": 5400,  "use_size": True},
     {"Item": "Takacu",                "Type": "Profile",     "Size": None,  "Quantity": 0,  "Gin": 3500,  "use_size": True},
     {"Item": "Takacui Rezin",         "Type": "Profile",     "Size": None,  "Quantity": 0,  "Gin": 400,   "use_size": True},
-    {"Item": "Chotq",                 "Type": "Profile",     "Size": 0,     "Quantity": 0,  "Gin": 50,    "use_size": True},
+    {"Item": "Chotq",                 "Type": "Profile",     "Size": None,  "Quantity": 0,  "Gin": 50,    "use_size": True},
     # Motor
     {"Item": "Motor 50N",             "Type": "Motor",       "Size": None,  "Quantity": 0,  "Gin": 26000, "use_size": False},
     {"Item": "Motor 80N",             "Type": "Motor",       "Size": None,  "Quantity": 0,  "Gin": 33000, "use_size": False},
@@ -204,6 +204,51 @@ def recalculate_from_inputs():
     st.session_state.gate_items = compute_totals(df)
 
 
+GATE_IMAGE_PATH = "jalousie_minimal.png"
+
+
+def _draw_gate_info_block(pdf: FPDF, x: float, y: float, length: float, height: float, colour: str, chaps: int, motor: str):
+    """Draw gate image + specs in a block at position (x, y)."""
+    from fpdf.enums import XPos, YPos
+
+    img_w = 90
+    img_h = 54
+
+    # Image first, then length just above it
+    img_y = y + 4
+    pdf.image(GATE_IMAGE_PATH, x=x, y=img_y - 25, w=img_w)
+
+    # Length centered just above image (1mm gap)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_xy(x, img_y - 5)
+    pdf.cell(img_w, 4, f"{length:.2f} m", align="C")
+
+    # Height to the right, near top of image (3mm down from image top)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_xy(x + img_w - 1, img_y + 3)
+    pdf.cell(25, 4, f"{height:.2f} m")
+
+    # Colour, Chaps, Motor directly under image
+    under_y = img_y + img_h + 1
+    pdf.set_xy(x, under_y)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(18, 4, "Colour:")
+    pdf.set_font("Helvetica", "", 8)
+    pdf.cell(40, 4, colour, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    pdf.set_x(x)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(18, 4, "Chaps:")
+    pdf.set_font("Helvetica", "", 8)
+    pdf.cell(40, 4, str(chaps), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    pdf.set_x(x)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(18, 4, "Motor:")
+    pdf.set_font("Helvetica", "", 8)
+    pdf.cell(40, 4, motor, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+
 def generate_pdf(
     items_df: pd.DataFrame,
     discount_pct: float,
@@ -213,6 +258,11 @@ def generate_pdf(
     discount_amount: float,
     after_discount: float,
     final_quote: float,
+    length: float,
+    height: float,
+    colour: str,
+    chaps: int,
+    motor: str,
 ) -> bytes:
     from fpdf.enums import XPos, YPos
 
@@ -222,25 +272,31 @@ def generate_pdf(
 
     today = date.today().strftime("%Y-%m-%d")
 
-    pdf.set_font("Helvetica", "B", 16)
-    pdf.cell(0, 10, f"Gate BOM - {today}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
-    pdf.ln(4)
+    page_w = pdf.w - pdf.l_margin - pdf.r_margin
+    page_h = pdf.h - pdf.t_margin - pdf.b_margin
 
+    # Date top-right
     pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 6, f"Discount: {discount_pct}%", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.ln(4)
+    pdf.set_xy(pdf.w - pdf.r_margin - 40, pdf.t_margin)
+    pdf.cell(40, 6, today, align="R")
+
+    # Table on the left, slightly down
+    table_x = pdf.l_margin
+    table_top_y = pdf.t_margin + 4
+    pdf.set_y(table_top_y)
 
     active = items_df[items_df["Quantity"] != 0].copy()
 
     col_widths = [15, 55, 20, 20, 30, 35]
     headers = ["Type", "Item", "Size", "Qty", "Gin", "Total"]
 
-    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.set_x(table_x)
     for w, h in zip(col_widths, headers):
-        pdf.cell(w, 7, h, border=1, align="C")
+        pdf.cell(w, 6, h, border=1, align="C")
     pdf.ln()
 
-    pdf.set_font("Helvetica", "", 9)
+    pdf.set_font("Helvetica", "", 8)
     for _, row in active.iterrows():
         size_str = f"{row['Size']:.2f}" if pd.notna(row["Size"]) else "-"
         vals = [
@@ -251,23 +307,105 @@ def generate_pdf(
             f"{int(row['Gin']):,}",
             f"{row['Total']:,.1f}",
         ]
+        pdf.set_x(table_x)
         for w, v in zip(col_widths, vals):
-            pdf.cell(w, 6, v, border=1, align="R" if v.replace(",", "").replace(".", "").isdigit() else "L")
+            pdf.cell(w, 5.5, v, border=1, align="R" if v.replace(",", "").replace(".", "").isdigit() else "L")
         pdf.ln()
 
-    pdf.ln(4)
+    table_bottom_y = pdf.get_y()
 
+    # Image + info to the right of table
+    img_x = table_x + sum(col_widths) + 10
+    img_top_y = table_top_y
+    _draw_gate_info_block(pdf, img_x, img_top_y, length, height, colour, chaps, motor)
+
+    # Summary below image info block
+    info_bottom_y = pdf.get_y() + 15
+    summary_y = max(info_bottom_y, img_top_y + 75)
+    pdf.set_xy(img_x, summary_y)
+
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(60, 6, "Summary", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_x(img_x)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.cell(60, 5, f"Discount: {discount_pct}%", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_x(img_x)
+    pdf.cell(60, 5, f"Area: {m2:.3f} m2", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_x(img_x)
+    pdf.cell(60, 5, f"Subtotal: {subtotal:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_x(img_x)
+    pdf.cell(60, 5, f"Price/m2: {gm2:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_x(img_x)
+    pdf.cell(60, 5, f"Discount ({discount_pct}%): {discount_amount:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_x(img_x)
+    pdf.cell(60, 5, f"After discount: {after_discount:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.ln(3)
+    pdf.set_x(img_x)
     pdf.set_font("Helvetica", "B", 11)
-    pdf.cell(0, 7, "Summary", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.cell(60, 6, f"Final quote: {final_quote:,.0f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    return bytes(pdf.output())
+
+
+def generate_gate_info_pdf(
+    items_df: pd.DataFrame,
+    length: float,
+    height: float,
+    colour: str,
+    chaps: int,
+    motor: str,
+) -> bytes:
+    from fpdf.enums import XPos, YPos
+
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    today = date.today().strftime("%Y-%m-%d")
+
+    page_w = pdf.w - pdf.l_margin - pdf.r_margin
+
+    # Date top-right
     pdf.set_font("Helvetica", "", 10)
-    pdf.cell(80, 6, f"Area: {m2:.3f} m2", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(80, 6, f"Subtotal: {subtotal:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(80, 6, f"Price/m2: {gm2:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(80, 6, f"Discount ({discount_pct}%): {discount_amount:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(80, 6, f"After discount: {after_discount:,.1f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.ln(2)
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(80, 8, f"Final quote: {final_quote:,.0f}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_xy(pdf.w - pdf.r_margin - 40, pdf.t_margin)
+    pdf.cell(40, 6, today, align="R")
+
+    # Table on the left, slightly down
+    table_x = pdf.l_margin
+    table_top_y = pdf.t_margin + 4
+    pdf.set_y(table_top_y)
+
+    active = items_df[items_df["Quantity"] != 0].copy()
+
+    col_widths = [12, 45, 18, 16]
+    headers = ["Type", "Item", "Size", "Qty"]
+    row_h = 4.5
+    font_size = 7.5
+
+    pdf.set_font("Helvetica", "B", font_size)
+    pdf.set_x(table_x)
+    for w, h in zip(col_widths, headers):
+        pdf.cell(w, row_h + 1, h, border=1, align="C")
+    pdf.ln()
+
+    pdf.set_font("Helvetica", "", font_size)
+    for _, row in active.iterrows():
+        size_str = f"{row['Size']:.2f}" if pd.notna(row["Size"]) else "-"
+        vals = [
+            str(row.get("Type", "")),
+            str(row["Item"]),
+            size_str,
+            str(int(row["Quantity"])),
+        ]
+        pdf.set_x(table_x)
+        for w, v in zip(col_widths, vals):
+            pdf.cell(w, row_h, v, border=1, align="R" if v.replace(",", "").replace(".", "").isdigit() else "L")
+        pdf.ln()
+
+    # Image + info to the right of table
+    img_x = table_x + sum(col_widths) + 10
+    img_top_y = table_top_y
+    _draw_gate_info_block(pdf, img_x, img_top_y, length, height, colour, chaps, motor)
 
     return bytes(pdf.output())
 
@@ -308,7 +446,7 @@ with r1c4:
         on_change=recalculate_from_inputs,
     )
 
-r2c1, r2c2, r2c3 = st.columns(3)
+r2c1, r2c2, r2c3, r2c4 = st.columns(4)
 with r2c1:
     items_df = st.session_state.gate_items
     motor_idx = 0
@@ -333,9 +471,15 @@ with r2c2:
         on_change=lambda: select_adaptor(st.session_state.adaptor_selector),
     )
 with r2c3:
+    colour = st.selectbox(
+        "Colour",
+        ["Andracid", "Chocolate", "Metallic"],
+        key="input_colour",
+    )
+with r2c4:
     discount_pct = st.number_input(
         "Discount % (\u0536\u0565\u0572\u057b\u057b)",
-        value=0.0, step=0.5, format="%.1f",
+        value=10.0, step=0.5, format="%.1f",
     )
 
 # ---------------------------------------------------------------------------
@@ -484,6 +628,16 @@ with reset_side:
         st.session_state.gate_items = default_df()
         st.rerun()
 
+    # Get motor name for PDF
+    motor_name = ""
+    for name in MOTOR_ITEMS:
+        row = items_df.loc[items_df["Item"] == name]
+        if len(row) > 0 and row.iloc[0]["Quantity"] > 0:
+            motor_name = name
+            break
+
+    today_str = date.today().strftime("%Y_%m_%d")
+
     pdf_bytes = generate_pdf(
         items_df=items_df,
         discount_pct=discount_pct,
@@ -493,12 +647,32 @@ with reset_side:
         discount_amount=discount_amount,
         after_discount=after_discount,
         final_quote=final_quote,
+        length=length,
+        height=height,
+        colour=colour,
+        chaps=chaps,
+        motor=motor_name,
     )
-    today_str = date.today().strftime("%Y_%m_%d")
     st.download_button(
         label="Download PDF",
         data=pdf_bytes,
         file_name=f"pdf_all_{today_str}.pdf",
+        mime="application/pdf",
+        use_container_width=True,
+    )
+
+    gate_info_bytes = generate_gate_info_pdf(
+        items_df=items_df,
+        length=length,
+        height=height,
+        colour=colour,
+        chaps=chaps,
+        motor=motor_name,
+    )
+    st.download_button(
+        label="Gate Info",
+        data=gate_info_bytes,
+        file_name=f"gate_info_{today_str}.pdf",
         mime="application/pdf",
         use_container_width=True,
     )
