@@ -157,9 +157,9 @@ def recalculate_from_inputs():
             df.at[i, "Quantity"] = qty
 
     # --- Sizes ---
-    _set("Korob 30", size=length if chaps == 30 else None)
-    _set("Korob 35", size=length if chaps == 35 else None)
-    _set("Korob 40", size=length if chaps == 40 else None)
+    _set("Korob 30", size=length-0.01 if chaps == 30 else None)
+    _set("Korob 35", size=length-0.01 if chaps == 35 else None)
+    _set("Korob 40", size=length-0.01 if chaps == 40 else None)
     _set("Val 70", size=length - 0.12)
     _set("Palet (Pallet)", size=length - 0.11)
     _set("Takacu", size=length - 0.11)
@@ -421,28 +421,28 @@ if "gate_items" not in st.session_state:
 r1c1, r1c2, r1c3, r1c4 = st.columns(4)
 with r1c1:
     height = st.number_input(
-        "Height / Bardzrutyun (m)",
+        "Բարձրություն / Height (m)",
         value=0.3, step=0.01, format="%.2f",
         key="input_height",
         on_change=recalculate_from_inputs,
     )
 with r1c2:
     length = st.number_input(
-        "Length / Erakrutyun (m)",
+        "Երկարություն / Length (m)",
         value=3.61, step=0.01, format="%.2f",
         key="input_length",
         on_change=recalculate_from_inputs,
     )
 with r1c3:
     chaps = st.selectbox(
-        "Chaps",
+        "Չափս / Size",
         [30, 35, 40],
         key="input_chaps",
         on_change=recalculate_from_inputs,
     )
 with r1c4:
     paleti_laynq = st.number_input(
-        "Paleti Laynq",
+        "Պալետի Լայնք / Palette Width (m)",
         value=0.077, step=0.001, format="%.3f",
         key="input_paleti_laynq",
         on_change=recalculate_from_inputs,
@@ -458,7 +458,7 @@ with r2c1:
             motor_idx = i
             break
     st.selectbox(
-        "Motor", MOTOR_ITEMS, index=motor_idx, key="motor_selector",
+        "Շարժիչ / Motor", MOTOR_ITEMS, index=motor_idx, key="motor_selector",
         on_change=lambda: select_motor(st.session_state.motor_selector),
     )
 with r2c2:
@@ -469,18 +469,18 @@ with r2c2:
             adap_idx = i
             break
     st.selectbox(
-        "Adaptor (Vali Glux)", ADAPTOR_ITEMS, index=adap_idx, key="adaptor_selector",
+        "Վալի Գլուխ / Adaptor", ADAPTOR_ITEMS, index=adap_idx, key="adaptor_selector",
         on_change=lambda: select_adaptor(st.session_state.adaptor_selector),
     )
 with r2c3:
     colour = st.selectbox(
-        "Colour",
+        "Գույն / Color",
         ["Andracid", "Chocolate", "Metallic"],
         key="input_colour",
     )
 with r2c4:
     discount_pct = st.number_input(
-        "Discount % (\u0536\u0565\u0572\u057b\u057b)",
+        "Discount % (\u0536\u0565\u0572\u057b)",
         value=10.0, step=0.5, format="%.1f",
     )
 
@@ -501,7 +501,7 @@ else:
     edit_col1, edit_col2 = st.columns([1, 5])
     with edit_col1:
         edit_selected = st.selectbox(
-            "Apranq",
+            "Ապրանք / Item",
             edit_candidates,
             key="edit_selected",
         )
@@ -511,7 +511,7 @@ else:
     ef1, ef2, ef3, ef4, ef5 = st.columns(5)
     with ef1:
         st.number_input(
-            "Chaps",
+            "Չափս / Size",
             value=float(edit_row["Size"]) if pd.notna(edit_row["Size"]) else 0.0,
             step=0.01, format="%.2f", min_value=0.0,
             key=f"edit_Size_{edit_selected}",
@@ -519,7 +519,7 @@ else:
         )
     with ef2:
         st.number_input(
-            "Qanak",
+            "Քանակ / Quantity",
             value=int(edit_row["Quantity"]),
             step=1, format="%d", min_value=0,
             key=f"edit_Qty_{edit_selected}",
@@ -527,7 +527,7 @@ else:
         )
     with ef3:
         st.number_input(
-            "Gin",
+            "Գին / Price",
             value=int(edit_row["Gin"]),
             step=100, format="%d", min_value=0,
             key=f"edit_Gin_{edit_selected}",
@@ -535,7 +535,7 @@ else:
         )
     with ef4:
         st.checkbox(
-            "Chapsov Hashvel",
+            "Չափսի կիրառում / Use Size",
             value=bool(edit_row["use_size"]),
             key=f"edit_use_{edit_selected}",
             on_change=apply_edit,
@@ -543,7 +543,7 @@ else:
     with ef5:
         st.write("")
         st.write("")
-        if st.button("Hastatel", key="edit_apply"):
+        if st.button("Հաստատել", key="edit_apply"):
             apply_edit()
             st.toast(f"Updated {edit_selected}")
 
@@ -564,7 +564,7 @@ final_quote = math.ceil(after_discount / 1000) * 1000
 left_sp, center, right_sp = st.columns([2, 3, 2])
 with center:
     st.metric(
-        label="Final quote / Verjnakan gin (\u054e\u0565\u0580\u057b\u056b\u0576\u0561\u056f\u0561\u0576 \u0563\u056b\u0576)",
+        label="Final quote (\u054e\u0565\u0580\u057b\u056b\u0576\u0561\u056f\u0561\u0576 \u0563\u056b\u0576)",
         value=f"{final_quote:,.0f}",
         help="Rounded UP to nearest 1000. e.g. 315,057 -> 316,000",
     )
@@ -611,12 +611,12 @@ st.divider()
 
 sum_side, reset_side = st.columns([5, 1])
 with sum_side:
-    st.subheader("Summary / Hashvark (\u0540\u0561\u0577\u057e\u0561\u057c\u056f)")
+    st.subheader("Հաշվարկ / Summary")
     r1a, r1b, r1c, r1d = st.columns(4)
-    r1a.metric("Area / Taratsq (\u054f\u0561\u0580\u0561\u0581\u0584) [m\u00b2]", f"{m2:.3f}")
-    r1b.metric("Subtotal / Yndhanur", f"{subtotal:,.1f}")
-    r1c.metric("G/m\u00b2 / Gin (\u0533\u056b\u0576)", f"{gm2:,.1f}")
-    r1d.metric("Discount / Zeghj (\u0536\u0565\u0572\u057b)", f"{discount_amount:,.1f}")
+    r1a.metric("Տարածք / Area[m\u00b2]", f"{m2:.3f}")
+    r1b.metric("Ընդհանուր / Subtotal", f"{subtotal:,.1f}")
+    r1c.metric("գին/m\u00b2 / \u0533\u056b\u0576", f"{gm2:,.1f}")
+    r1d.metric("\u0536\u0565\u0572\u057b / Discount", f"{discount_amount:,.1f}")
 
     r2a, r2b = st.columns(2)
     r2a.metric("After discount (\u0536\u0565\u0572\u057b\u056b\u0581 \u0570\u0565\u057f\u0578)", f"{after_discount:,.1f}")
